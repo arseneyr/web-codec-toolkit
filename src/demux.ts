@@ -1,0 +1,1 @@
+import LibAV from 'libav.js/libav-3.8.5.1-opus.js'
