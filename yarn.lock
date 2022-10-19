@@ -177,10 +177,9 @@ is-core-module@^2.9.0:
   dependencies:
     has "^1.0.3"
 
-libav.js@^3.8.5:
-  version "3.8.5"
-  resolved "https://registry.yarnpkg.com/libav.js/-/libav.js-3.8.5.tgz#c15513bcacaa7749ed3aa958eb0bc1140a965c95"
-  integrity sha512-KYTOJEh58Dmq5PyKxXpwBynjEi5oJcCeDXE+G6VNZKwf7QjXUx0TKeSb5a+zQxapLLHuKBXPUSrQ3EhvHZPf+w==
+"libav.js@link:../libav.js":
+  version "0.0.0"
+  uid ""
 
 nanoid@^3.3.4:
   version "3.3.4"

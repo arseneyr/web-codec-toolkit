@@ -16,6 +16,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "libav.js": "^3.8.5"
+    "libav.js": "link:../libav.js"
   }
 }

@@ -35,5 +35,8 @@
 		"ghcr.io/devcontainers/features/desktop-lite:1": {
 			"version": "latest"
 		}
-	}
+	},
+	"mounts": [
+		"source=${localWorkspaceFolder}/../libav.js,target=/workspaces/libav.js,type=bind"
+	]
 }

@@ -1,6 +1,9 @@
 import './style.css'
 import typescriptLogo from './typescript.svg'
 import { setupCounter } from './counter'
+import { start } from './demux'
+
+start()
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
