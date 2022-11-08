@@ -2,7 +2,7 @@
 
 declare module "libav.js" {
 
-import {type LibAVWrapper} from 'libav.js/libav.types'
+	import { type LibAVWrapper } from 'libav.js/libav.types'
 	var libav: LibAVWrapper;
 	export default libav;
 }

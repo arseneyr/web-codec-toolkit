@@ -1,8 +1,9 @@
 import LibAV from 'libav.js'
 
-function start() {
+async function start() {
 	console.log(import.meta.url)
-	LibAV.LibAV().then(console.log)
+	const av = await LibAV.LibAV();
+	return av;
 }
 
 export { start }

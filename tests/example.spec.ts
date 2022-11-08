@@ -18,3 +18,10 @@ test('homepage has Playwright in title and get started link linking to the intro
   // Expects the URL to contain intro.
   await expect(page).toHaveURL(/.*intro/);
 });
+
+test("lib loads", async ({ page }) => {
+  await page.goto('/', { waitUntil: "domcontentloaded" })
+  const funcs = await page.evaluateHandle(() => window.testFuncs)
+  await expect(page.evaluateHandle(funcs => funcs.start(), funcs)).resolves.toBeDefined();
+  await expect(page.evaluateHandle(() => Promise.reject('yo') as Promise<void>)).rejects.toThrow('yo')
+})

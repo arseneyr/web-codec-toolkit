@@ -42,6 +42,12 @@ const config: PlaywrightTestConfig = {
     trace: 'on-first-retry',
   },
 
+  webServer: {
+    command: "yarn dev --port 6123",
+    port: 6123,
+    reuseExistingServer: true
+  },
+
   /* Configure projects for major browsers */
   projects: [
     {
