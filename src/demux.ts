@@ -1,9 +1,17 @@
-import LibAV from 'libav.js'
+import LibAVFactory, { type LibAV } from "libav.js";
 
-async function start() {
-	console.log(import.meta.url)
-	const av = await LibAV.LibAV();
-	return av;
+class Decoder {
+  private constructor(private readonly av: LibAV) {}
+
+  public async decode(buf: ArrayBuffer) {
+    await this.av.writeFile("tmpfile", new Uint8Array(buf));
+    const [fmtCtx, streams] = await this.av.ff_init_demuxer_file("tmpfile");
+    const packet = await this.av.av_packet_alloc();
+  }
+
+  public static async create() {
+    return new Decoder(await LibAVFactory.LibAV());
+  }
 }
 
-export { start }
+export { Decoder };

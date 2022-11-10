@@ -22,6 +22,6 @@
   "include": [
     "src",
     "tests",
-    "test_harness/main.ts"
+    "test_harness"
   ]
 }
