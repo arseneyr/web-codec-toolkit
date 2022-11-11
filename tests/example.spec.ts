@@ -24,7 +24,7 @@ test("homepage has Playwright in title and get started link linking to the intro
 test("lib loads", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   const funcs = await page.evaluateHandle(() => window.testFuncs);
-  const av = await page.evaluateHandle((funcs) => funcs.start(), funcs);
+  const av = await page.evaluateHandle((funcs) => funcs.Decoder.create(), funcs);
   const testFile = await page.evaluateHandle(() =>
     fetch("/sample.opus").then((res) => res.arrayBuffer())
   );

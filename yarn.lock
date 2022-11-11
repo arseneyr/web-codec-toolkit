@@ -20,6 +20,11 @@
     "@types/node" "*"
     playwright-core "1.27.1"
 
+"@types/dom-webcodecs@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@types/dom-webcodecs/-/dom-webcodecs-0.1.5.tgz#2252fdb4a3229924d27f054242cc614e2cd5b83b"
+  integrity sha512-dsAE+4ws75W5mmNmIZ7IKZwv4bcz5GgPuA87u+Mk1CeVWB6g7ZwBfizRwBZDeyO12RSxoU3NlRa8jgLYQeSZGg==
+
 "@types/node@*":
   version "18.11.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.0.tgz#f38c7139247a1d619f6cc6f27b072606af7c289d"
