@@ -1,6 +1,7 @@
+import { type LibAVWrapper, type LibAV } from "libav.js";
+
 declare module "libav.js" {
-  import { type LibAVWrapper, type LibAV } from "libav.js/libav.types";
+  export interface LibAV extends EmscriptenModule {}
   var libav: LibAVWrapper;
   export default libav;
-  export { type LibAV };
 }
