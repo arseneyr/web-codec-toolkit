@@ -35,6 +35,11 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.0.tgz#f38c7139247a1d619f6cc6f27b072606af7c289d"
   integrity sha512-IOXCvVRToe7e0ny7HpT/X9Rb2RYtElG1a+VshjwT00HxrM2dWBApHQoqsI6WiY7Q03vdf2bCrIGzVrkF/5t10w==
 
+"@typescript/lib-dom@npm:@types/web":
+  version "0.0.79"
+  resolved "https://registry.yarnpkg.com/@types/web/-/web-0.0.79.tgz#08522b588c9adbfadf81bf34af7f762959457ab8"
+  integrity sha512-SeMxYX6o5vWnUeS57r+1QbiJjKUuBvnzakMT9tGQ4/W0+J+sNrSz+noZAa+09KX81ACAnMR4XHQKRZz9J+xwZg==
+
 "@zkochan/rimraf@^2.1.2":
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/@zkochan/rimraf/-/rimraf-2.1.2.tgz#84b502594321360e4a4ca864b9e6457af2f5212d"
