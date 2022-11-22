@@ -24,18 +24,22 @@ test("homepage has Playwright in title and get started link linking to the intro
 test("lib loads", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   const funcs = await page.evaluateHandle(() => window.testFuncs);
-  const av = await page.evaluateHandle((funcs) => funcs.Decoder.create(), funcs);
-  const testFile = await page.evaluateHandle(() =>
-    fetch("/sample.opus").then((res) => res.arrayBuffer())
+  const demux = await page.evaluateHandle(
+    async (funcs) => funcs.createDemuxer(await window.libav),
+    funcs
+  );
+  const testStream = await page.evaluateHandle(() =>
+    fetch("/sample.opus").then((res) => res.body!)
   );
   console.log(
-    await av.evaluate(async (av, file) => {
-      const TMP_FILENAME = "tmp.opus";
-      await av.writeFile(TMP_FILENAME, new Uint8Array(file));
-      const [fmt_ctx, streams] = await av.ff_init_demuxer_file(TMP_FILENAME);
-      const packet = await av.av_packet_alloc();
-      await av.av_read_frame(fmt_ctx, packet);
-      return av.AVPacket_data(packet);
-    }, testFile)
+    await demux.evaluate(async (demux, stream) => {
+      let ret = [];
+      for await (const chunk of window.testFuncs.streamAsyncIterator(
+        stream.pipeThrough(demux)
+      )) {
+        ret.push(chunk);
+      }
+      return ret;
+    }, testStream)
   );
 });
