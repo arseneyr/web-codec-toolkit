@@ -1,68 +1,101 @@
-import { LibAVModule } from "libav.js/lite";
+import {
+  AVFormatContextPtr,
+  AVPacketPtr,
+  LibAVModule,
+  NULLPTR,
+} from "libav.js";
 
-interface MediaStream {}
+interface MediaStream {
+  id: number;
+  channels: number;
+  sample_rate: number;
+  time_base: { num: number; den: number };
+}
 
-interface MediaFrame {
+export interface MediaFrame {
   stream: MediaStream;
+  data: Uint8Array;
+  presentation_timestamp_seconds: number;
+  duration_seconds: number;
+}
+
+function timeBaseToSeconds(
+  value: number,
+  timeBase: { num: number; den: number }
+): number {
+  return (value * timeBase.num) / timeBase.den;
 }
 
 function createDemuxer(
   av: LibAVModule
-): TransformStream<Uint8Array, Uint8Array> {
-  const inputTransform = new TransformStream<
-    ArrayBufferView,
-    ArrayBufferView
-  >();
-  const transformer: Transformer<ArrayBufferView, Uint8Array> & {
-    writer: WritableStreamDefaultWriter;
-    complete?: Promise<void>;
-  } = {
-    writer: inputTransform.writable.getWriter(),
-    start(controller) {
-      this.complete = av
-        .avformat_open_input_stream(inputTransform.readable)
-        .then(async (ctx) => {
-          const packet = av.av_packet_alloc();
-          if (!packet) {
-            throw new Error("Unable to allocate packet");
-          }
-          while ((await av.av_read_frame(ctx, packet)) >= 0) {
-            const [data, size] = [
-              av._AVPacket_data(packet),
-              av._AVPacket_size(packet),
-            ];
-            controller.enqueue(av.HEAPU8.slice(data, data + size));
-          }
-        });
-    },
-    transform(chunk) {
-      return this.writer.write(chunk);
-    },
-    async flush() {
-      await this.writer.close();
-      await this.complete;
-    },
-  };
-  return new TransformStream(transformer);
-}
-export async function* streamAsyncIterator<T>(
-  stream: ReadableStream<T>
-): AsyncIterable<T> {
-  // Get a lock on the stream
-  const reader = stream.getReader();
-
-  try {
-    while (true) {
-      // Read from the stream
-      const { done, value } = await reader.read();
-      // Exit if we're done
-      if (done) return;
-      // Else yield the chunk
-      yield value;
-    }
-  } finally {
-    reader.releaseLock();
+): TransformStream<AllowSharedBufferSource, MediaFrame> {
+  function getStreams(fmt_ctx: AVFormatContextPtr): MediaStream[] {
+    const numStreams = av.AVFormatContext_nb_streams(fmt_ctx);
+    return Array.from({ length: numStreams }, (_, i) => {
+      const stream = av.AVFormatContext_streams_a(fmt_ctx, i);
+      const codecParams = av.AVStream_codecpar(stream);
+      return {
+        id: i,
+        channels: av.AVCodecParameters_channels(codecParams),
+        sample_rate: av.AVCodecParameters_sample_rate(codecParams),
+        time_base: av.AVStream_time_base(stream),
+      };
+    });
   }
-}
 
+  const inputTransform = new TransformStream<ArrayBufferView, ArrayBufferView>(
+    undefined,
+    new ByteLengthQueuingStrategy({ highWaterMark: 4096 })
+  );
+  const writer = inputTransform.writable.getWriter();
+  let packet: AVPacketPtr = NULLPTR;
+  let streams: MediaStream[];
+  let complete: Promise<void>;
+  return new TransformStream<AllowSharedBufferSource, MediaFrame>(
+    {
+      start(controller) {
+        packet = av.av_packet_alloc();
+        if (packet == NULLPTR) {
+          throw new Error("Unable to allocate packet");
+        }
+        complete = av
+          .avformat_open_input_stream(inputTransform.readable)
+          .then(async (ctx) => {
+            streams = getStreams(ctx);
+            while ((await av.av_read_frame(ctx, packet)) >= 0) {
+              const [data, size] = [
+                av.AVPacket_data(packet),
+                av.AVPacket_size(packet),
+              ];
+              const stream = streams[av.AVPacket_stream_index(packet)];
+              controller.enqueue({
+                stream,
+                data: av.HEAPU8.slice(data, data + size),
+                presentation_timestamp_seconds: timeBaseToSeconds(
+                  av.AVPacket_pts(packet),
+                  stream.time_base
+                ),
+                duration_seconds: timeBaseToSeconds(
+                  av.AVPacket_duration(packet),
+                  stream.time_base
+                ),
+              });
+            }
+          });
+      },
+      async transform(chunk) {
+        await writer.ready;
+        return writer.write(
+          chunk instanceof ArrayBuffer ? new Uint8Array(chunk) : chunk
+        );
+      },
+      async flush() {
+        await writer.close();
+        await complete;
+      },
+    },
+    { highWaterMark: 4096, size: (chunk) => chunk.byteLength },
+    { highWaterMark: 4096, size: (chunk) => chunk.data.byteLength }
+  );
+}
 export { createDemuxer };
