@@ -62,7 +62,7 @@ function createDemuxer(
           .avformat_open_input_stream(inputTransform.readable)
           .then(async (ctx) => {
             streams = getStreams(ctx);
-            while ((await av.av_read_frame(ctx, packet)) >= 0) {
+            while ((await av.av_read_frame(ctx, packet)) === 0) {
               const [data, size] = [
                 av.AVPacket_data(packet),
                 av.AVPacket_size(packet),
@@ -81,6 +81,7 @@ function createDemuxer(
                 ),
               });
             }
+            return av.avformat_close_input(ctx);
           });
       },
       async transform(chunk) {
