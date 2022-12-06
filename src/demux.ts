@@ -4,6 +4,7 @@ import {
   LibAVModule,
   NULLPTR,
 } from "libav.js";
+import { ShutdownAwareTransformStream } from "./shutdown_aware_transform_stream.js";
 
 interface MediaStream {
   id: number;
@@ -51,8 +52,8 @@ function createDemuxer(
   let packet: AVPacketPtr = NULLPTR;
   let streams: MediaStream[];
   let complete: Promise<void>;
-  return new TransformStream<AllowSharedBufferSource, MediaFrame>(
-    {
+  return new ShutdownAwareTransformStream<AllowSharedBufferSource, MediaFrame>({
+    transformer: {
       start(controller) {
         packet = av.av_packet_alloc();
         if (packet == NULLPTR) {
@@ -92,11 +93,20 @@ function createDemuxer(
       },
       async flush() {
         await writer.close();
+      },
+      async close() {
+        await writer.close();
         await complete;
       },
     },
-    { highWaterMark: 4096, size: (chunk) => chunk.byteLength },
-    { highWaterMark: 4096, size: (chunk) => chunk.data.byteLength }
-  );
+    writableStrategy: {
+      highWaterMark: 4096,
+      size: (chunk) => chunk.byteLength,
+    },
+    readableStrategy: {
+      highWaterMark: 4096,
+      size: (chunk) => chunk.data.byteLength,
+    },
+  });
 }
 export { createDemuxer };
