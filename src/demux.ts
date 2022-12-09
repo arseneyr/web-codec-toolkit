@@ -52,6 +52,7 @@ function createDemuxer(
   let packet: AVPacketPtr = NULLPTR;
   let streams: MediaStream[];
   let complete: Promise<void>;
+  let closed = false;
   return new ShutdownAwareTransformStream<AllowSharedBufferSource, MediaFrame>({
     transformer: {
       start(controller) {
@@ -83,7 +84,8 @@ function createDemuxer(
               });
             }
             return av.avformat_close_input(ctx);
-          });
+          })
+          .catch((err) => controller.error(err));
       },
       async transform(chunk) {
         await writer.ready;
@@ -93,10 +95,14 @@ function createDemuxer(
       },
       async flush() {
         await writer.close();
+        await complete;
+        closed = true;
       },
       async close() {
-        await writer.close();
-        await complete;
+        if (!closed) {
+          await writer.close();
+          await complete;
+        }
       },
     },
     writableStrategy: {
